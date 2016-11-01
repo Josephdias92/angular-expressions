@@ -1,60 +1,5 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
-
-var parse = require("./parse.js");
-
-var filters = {};
-var Lexer = parse.Lexer;
-var Parser = parse.Parser;
-var lexer = new Lexer({});
-var parser = new Parser(lexer, function getFilter(name) {
-    return filters[name];
-});
-
-/**
- * Compiles src and returns a function that executes src on a target object.
- * The compiled function is cached under compile.cache[src] to speed up further calls.
- *
- * @param {string} src
- * @returns {function}
- */
-function compile(src) {
-    var cached;
-
-    if (typeof src !== "string") {
-        throw new TypeError("src must be a string, instead saw '" + typeof src + "'");
-    }
-
-    if (!compile.cache) {
-        return parser.parse(src);
-    }
-
-    cached = compile.cache[src];
-    if (!cached) {
-        cached = compile.cache[src] = parser.parse(src);
-    }
-
-    return cached;
-}
-
-/**
- * A cache containing all compiled functions. The src is used as key.
- * Set this on false to disable the cache.
- *
- * @type {object}
- */
-compile.cache = {};
-
-exports.Lexer = Lexer;
-exports.Parser = Parser;
-exports.compile = compile;
-exports.filters = filters;
-
-},{"./parse.js":2}],2:[function(require,module,exports){
-"use strict";
-
-// We don't want to lint angular's code...
-/* eslint-disable */
 
 // Angular environment stuff
 // ------------------------------
@@ -781,9 +726,7 @@ Parser.prototype = {
       return getter(self || object(scope, locals));
     }, {
       assign: function(scope, value, locals) {
-        var o = object(scope, locals);
-        if (!o) object.assign(scope, o = {}, locals);
-        return setter(o, field, value, parser.text, parser.options);
+        return setter(object(scope, locals), field, value, parser.text, parser.options);
       }
     });
   },
@@ -806,9 +749,8 @@ Parser.prototype = {
       assign: function(self, value, locals) {
         var key = indexFn(self, locals);
         // prevent overwriting of Function.constructor which would break ensureSafeObject check
-        var o = ensureSafeObject(obj(self, locals), parser.text);
-        if (!o) obj.assign(self, o = [], locals);
-        return o[key] = value;
+        var safe = ensureSafeObject(obj(self, locals), parser.text);
+        return safe[key] = value;
       }
     });
   },
@@ -1057,5 +999,64 @@ function getterFn(path, options, fullExp) {
 
 exports.Lexer = Lexer;
 exports.Parser = Parser;
+},{}],"angular-expressions":[function(require,module,exports){
+"use strict";
 
-},{}]},{},[1]);
+var parse = require("./parse.js");
+
+var filters = {},
+    Lexer = parse.Lexer,
+    Parser = parse.Parser,
+    lexer = new Lexer({}),
+    parser = new Parser(lexer, getFilter);
+
+/**
+ * Compiles src and returns a function that executes src on a target object.
+ * The compiled function is cached under compile.cache[src] to speed up further calls.
+ *
+ * @param {string} src
+ * @returns {function}
+ */
+function compile(src) {
+    var cached;
+
+    if (typeof src !== "string") {
+        throw new TypeError("src must be a string, instead saw '" + typeof src + "'");
+    }
+
+    if (!compile.cache) {
+        return parser.parse(src);
+    }
+
+    cached = compile.cache[src];
+    if (!cached) {
+        cached = compile.cache[src] = parser.parse(src);
+    }
+
+    return cached;
+}
+
+/**
+ * A cache containing all compiled functions. The src is used as key.
+ * Set this on false to disable the cache.
+ *
+ * @type {object}
+ */
+compile.cache = {};
+
+/**
+ * Just a stub of angular's $filter-method
+ *
+ * @private
+ * @param {string} name
+ * @returns {function}
+ */
+function getFilter(name) {
+    return filters[name];
+}
+
+exports.Lexer = Lexer;
+exports.Parser = Parser;
+exports.compile = compile;
+exports.filters = filters;
+},{"./parse.js":1}]},{},[]);
