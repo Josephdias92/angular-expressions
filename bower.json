@@ -1,0 +1,26 @@
+{
+  "name": "angular-expressions",
+  "description": "Angular expressions as standalone module",
+  "main": "angular-expression.js",
+  "authors": [
+    "peerigon <developers@peerigon.com>"
+  ],
+  "license": "Unlicense",
+  "keywords": [
+    "angular",
+    "expression",
+    "parser",
+    "lexer",
+    "parse",
+    "eval",
+    "source"
+  ],
+  "homepage": "https://github.com/Josephdias92/angular-expressions",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
